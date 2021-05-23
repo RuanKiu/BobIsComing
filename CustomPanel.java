@@ -21,6 +21,8 @@ public class CustomPanel extends JPanel implements ActionListener, KeyListener, 
   private double rotationSpeed;
   private double movementSpeed;
   private double sprint;
+  private boolean showMap;
+  private int mapSize;
   public CustomPanel()
   {
     timer = new Timer(15, this);
@@ -31,6 +33,8 @@ public class CustomPanel extends JPanel implements ActionListener, KeyListener, 
     rotationSpeed = 1;
     movementSpeed = 0.05;
     sprint = 1;
+    showMap = false;
+    mapSize = (int) Math.min(getWidth(), getHeight()) / 200;
 
     addKeyListener(this);
     addComponentListener(this);
@@ -72,6 +76,7 @@ public class CustomPanel extends JPanel implements ActionListener, KeyListener, 
       case KeyEvent.VK_KP_RIGHT: rr = true; break;
       case KeyEvent.VK_KP_LEFT: rl = true; break;
       case KeyEvent.VK_SHIFT: sprint = 2; break;
+      case KeyEvent.VK_M: showMap = !showMap; break;
     }
   }
   public void keyReleased(KeyEvent e)
@@ -96,6 +101,7 @@ public class CustomPanel extends JPanel implements ActionListener, KeyListener, 
   public void componentResized(ComponentEvent e)
   {
     engine.updateFOV(getWidth(), getHeight());
+    mapSize = (int) Math.min(getWidth(), getHeight()) / 200;
   }
   public void componentMoved(ComponentEvent e) {}
   public void componentHidden(ComponentEvent e) {}
@@ -126,6 +132,22 @@ public class CustomPanel extends JPanel implements ActionListener, KeyListener, 
       Color shade = new Color((int) (255 / dist), (int) (255 / dist), (int) (255 / dist));
       g2.setColor(shade);
       g2.fillRect(i, roof, resolution, floor - roof);
+    }
+    if (showMap)
+    {
+      g2.setColor(Color.WHITE);
+      g2.fillRect(0, 0, engine.getMap().getWidth() * mapSize, engine.getMap().getHeight() * mapSize);
+      g2.setColor(Color.BLACK);
+      for (int r = 0; r < engine.getMap().getMap().length; r++)
+      {
+        for (int c = 0; c < engine.getMap().getMap()[r].length; c++)
+        {
+          if (engine.getMap().getMap()[r][c])
+            g2.fillRect(c * mapSize, r * mapSize, mapSize, mapSize); 
+        }
+      }
+      g2.setColor(Color.RED);
+      g2.fillRect((int) (engine.getPlayer().x() * mapSize), (int) (engine.getPlayer().y() * mapSize), mapSize, mapSize);
     }
   }
 }
