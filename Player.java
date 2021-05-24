@@ -1,35 +1,18 @@
-public class Player 
+public class Player extends Entity 
 {
-  private double x, y;
   private double angle;
-  public Player(double start)
+  public Player(double x, double y)
   {
-    x = y = start;
+    super(x, y);
     angle = 0;
   }
   public Player()
   {
-    this(0);
-  }
-  public double x()
-  {
-    return x;
-  }
-  public double y()
-  {
-    return y;
+    this(0, 0);
   }
   public double getAngle()
   {
     return angle;
-  }
-  public void setX(double x)
-  {
-    this.x = x;
-  }
-  public void setY(double y)
-  {
-    this.y = y;
   }
   public void setAngle(double a)
   {

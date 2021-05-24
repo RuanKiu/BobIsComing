@@ -7,7 +7,7 @@ public class Engine
   private double increment;
   public Engine()
   {
-    player = new Player(5);
+    player = new Player(5, 5);
     map = new Map();
     map.loadMap("School.txt");
     fovV = Math.toRadians(25);
@@ -27,6 +27,10 @@ public class Engine
   public double getFOV()
   {
     return fovH;
+  }
+  public double getRenderFar()
+  {
+    return renderFar;
   }
   public double castRay(double rayAngle)
   {
@@ -50,6 +54,26 @@ public class Engine
       }
     }
     return dist;
+  }
+  public double getDistanceFromEntity(Entity e)
+  {
+    return Math.sqrt(Math.pow(player.x() - e.x(), 2) + Math.pow(player.y() - e.y(), 2));
+  }
+  public double getAngleFromEntity(Entity e)
+  {
+    double stepX = Math.sin(player.getAngle());
+    double stepY = Math.cos(player.getAngle());
+    double entityAngle = Math.atan(stepY / stepX) - Math.atan((e.y() - player.y()) / (e.x() - player.x()));
+    if (entityAngle < -Math.PI)
+      entityAngle += 2 * Math.PI;
+    if (entityAngle > Math.PI)
+      entityAngle -= 2 * Math.PI;
+    return entityAngle;
+  }
+  public boolean isEntityVisible(Entity e)
+  {
+    double entityAngle = getAngleFromEntity(e);
+    return Math.abs(entityAngle) < fovH / 1.7; 
   }
   public void movePlayer(double distance)
   {
