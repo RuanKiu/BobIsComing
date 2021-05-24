@@ -1,5 +1,6 @@
 import javax.swing.JPanel;
 import javax.swing.Timer;
+import javax.imageio.ImageIO;
 import java.awt.event.ActionListener;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyListener;
@@ -10,6 +11,9 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Color;
 import java.awt.GradientPaint;
+import java.awt.Image;
+import java.io.File;
+import java.io.IOException;
 
 public class CustomPanel extends JPanel implements ActionListener, KeyListener, ComponentListener
 {
@@ -19,10 +23,11 @@ public class CustomPanel extends JPanel implements ActionListener, KeyListener, 
   private boolean forward, backward, left, right, rr, rl;
   private double shadeFactor;
   private double rotationSpeed;
-  private double movementSpeed;
+  private double movementSpeed, strafeSpeed;
   private double sprint;
   private boolean showMap;
   private int mapSize;
+  private Image flashlightHand, originalFlashlightHand;
   public CustomPanel()
   {
     timer = new Timer(15, this);
@@ -32,9 +37,16 @@ public class CustomPanel extends JPanel implements ActionListener, KeyListener, 
     shadeFactor = 1.6;
     rotationSpeed = 1;
     movementSpeed = 0.05;
+    strafeSpeed = 0.02;
     sprint = 1;
     showMap = false;
     mapSize = (int) Math.min(getWidth(), getHeight()) / 200;
+    try
+    {
+      originalFlashlightHand = ImageIO.read(new File("flashlightHand.png"));
+      flashlightHand = originalFlashlightHand.getScaledInstance(700 / 3, -1, Image.SCALE_SMOOTH);
+    }
+    catch (IOException e) {}
 
     addKeyListener(this);
     addComponentListener(this);
@@ -56,6 +68,10 @@ public class CustomPanel extends JPanel implements ActionListener, KeyListener, 
       engine.movePlayer(movementSpeed * sprint);
     if (backward)
       engine.movePlayer(-movementSpeed * sprint);
+    if (right)
+      engine.strafePlayer(strafeSpeed * sprint);
+    if (left)
+      engine.strafePlayer(-strafeSpeed * sprint);
     if (rr)
       engine.rotatePlayer(Math.toRadians(rotationSpeed));
     if (rl)
@@ -102,6 +118,7 @@ public class CustomPanel extends JPanel implements ActionListener, KeyListener, 
   {
     engine.updateFOV(getWidth(), getHeight());
     mapSize = (int) Math.min(getWidth(), getHeight()) / 200;
+    flashlightHand = originalFlashlightHand.getScaledInstance((int) (getWidth() / 2.4), -1, Image.SCALE_SMOOTH);
   }
   public void componentMoved(ComponentEvent e) {}
   public void componentHidden(ComponentEvent e) {}
@@ -149,6 +166,7 @@ public class CustomPanel extends JPanel implements ActionListener, KeyListener, 
       g2.setColor(Color.RED);
       g2.fillRect((int) (engine.getPlayer().x() * mapSize), (int) (engine.getPlayer().y() * mapSize), mapSize, mapSize);
     }
+    g2.drawImage(flashlightHand, getWidth() / 2, getHeight() - (flashlightHand.getHeight(null) - 10), null);
   }
 }
 

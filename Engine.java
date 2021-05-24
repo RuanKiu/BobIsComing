@@ -58,6 +58,13 @@ public class Engine
     player.setX(player.x() + stepX);
     player.setY(player.y() + stepY);
   }
+  public void strafePlayer(double distance)
+  {
+    double stepX = Math.cos(player.getAngle()) * distance;
+    double stepY = -Math.sin(player.getAngle()) * distance;
+    player.setX(player.x() + stepX);
+    player.setY(player.y() + stepY);
+  }
   public void rotatePlayer(double angle)
   {
     player.setAngle(player.getAngle() + angle);
