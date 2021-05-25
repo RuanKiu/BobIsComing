@@ -35,6 +35,7 @@ public class CustomPanel extends JPanel implements ActionListener, KeyListener, 
   private ArrayList<Entity> entities;
   private static int COLUMN, ENTITY;
   private Color startShade;
+  private Entity nightmareBob;
   public CustomPanel()
   {
     timer = new Timer(15, this);
@@ -56,10 +57,12 @@ public class CustomPanel extends JPanel implements ActionListener, KeyListener, 
     }
     catch (IOException e) {}
     entities = new ArrayList<>();
-    Entity nightmareBob = new Entity(8, 8);
-    Entity nightmareBob2 = new Entity(10, 20);
+    nightmareBob = new Entity(30, 32, "nightmareBob");
+    Entity nightmareBob2 = new Entity(8, 8, "nightmareBob2");
+    Entity nightmareBob3 = new Entity(15, 8, "nightmareBob3");
     entities.add(nightmareBob);
     entities.add(nightmareBob2);
+    entities.add(nightmareBob3);
     COLUMN = 0;
     ENTITY = 1;
 
@@ -148,8 +151,6 @@ public class CustomPanel extends JPanel implements ActionListener, KeyListener, 
   public void mouseEntered(MouseEvent e){}
   public void mouseExited(MouseEvent e){}
 
-
-
   // Component handling
   public void componentResized(ComponentEvent e)
   {
@@ -172,71 +173,67 @@ public class CustomPanel extends JPanel implements ActionListener, KeyListener, 
     g2.setPaint(gp);
     g2.fillRect(0, 0, getWidth(), getHeight() / 2);
 
-    ArrayList<double[]> toDraw = new ArrayList<>();
+    ArrayList<QueueItem> toDraw = new ArrayList<>();
 
     double rayAngle = engine.getPlayer().getAngle() - (engine.getFOV() / 2.0); 
     double dist = engine.castRay(rayAngle);
-    toDraw.add(0, new double[]{COLUMN, dist, 0});
+    toDraw.add(0, new ColumnQueueItem(dist, 0));
 
+    // Inserting background values into sorted array
     for (int i = 1; i < getWidth(); i += resolution)
     {
       rayAngle = engine.getPlayer().getAngle() - (engine.getFOV() / 2.0) + (i / (double) getWidth()) * engine.getFOV(); 
       dist = engine.castRay(rayAngle);
 
-      boolean entered = false;
       int index = 0;
-      while (index < toDraw.size() && !entered)
+      boolean stop = false;
+      while (index < toDraw.size() && !stop) 
       {
-        if (toDraw.get(index)[1] <= dist) // Does not check for other types
+        if (toDraw.get(index).getDist() > dist) // Does not check for other types
         {
-          entered = true;
-          toDraw.add(index + 1, new double[]{COLUMN, dist, i});
+          stop = true;
         }
         index++;
       }
-      if (!entered)
-        toDraw.add(0, new double[]{COLUMN, dist, i});
-
+      toDraw.add(index, new ColumnQueueItem(dist, i));
     }
 
+    // Inserting entities into sorted array
     for (Entity e : entities)
     {
       dist = engine.getDistanceFromEntity(e);
-      if (dist < engine.getRenderFar() && dist > 0.3 && engine.isEntityVisible(e))
+      if (dist < engine.getRenderFar() - 5 && dist > 0.3 && engine.isEntityVisible(e))
       {
-        boolean entered = false;
-        double max = toDraw.get(0)[1];
         int index = 0;
-        int remember = 0;
-        while (index < toDraw.size() - 1 && !entered)
+        boolean stop = false;
+        while (index < toDraw.size() - 1 && !stop)
         {
-          if (toDraw.get(index)[1] > max && max <= dist) // Does not check for other types
+          if (toDraw.get(index + 1).getDist() > dist) // Does not check for other types
           {
-            max = toDraw.get(index)[1];
-            remember = index;
+            stop = true;
           }
           index++;
         }
-        toDraw.add(remember + 1, new double[]{ENTITY, dist, engine.getAngleFromEntity(e)});
-
+        toDraw.add(index, new EntityQueueItem(dist, e));
       }
     }
-    int entCount = 0;
+
     // Drawing scene
     for (int i = toDraw.size() - 1; i >= 0; i--)
     {
-      if ((int) (toDraw.get(i)[0] + 0.1) == COLUMN)
-        drawColumn(g2, toDraw.get(i)[1], (int) (toDraw.get(i)[2] + 0.5));
-      else if ((int) (toDraw.get(i)[0] + 0.1) == ENTITY)
+      if (toDraw.get(i) instanceof ColumnQueueItem) {
+        ColumnQueueItem c = (ColumnQueueItem) toDraw.get(i);
+        drawColumn(g2, c.getDist(), c.getColumn());
+      }
+      else if (toDraw.get(i) instanceof EntityQueueItem)
       {
-        if (entCount == 0)
-          drawEntity(g2, toDraw.get(i)[1], toDraw.get(i)[2]);
-        else 
-          drawEntityColor(g2, toDraw.get(i)[1], toDraw.get(i)[2]);
-        entCount++;
+        EntityQueueItem e = (EntityQueueItem) toDraw.get(i);
+        if (e.getEntity().getName().equals(nightmareBob.getName()))
+          drawEntity(g2, e.getDist(), engine.getAngleFromEntity(e.getEntity()));
+        else
+          drawEntityColor(g2, e.getDist(), engine.getAngleFromEntity(e.getEntity()));
       }
     }
-
     if (showMap)
     {
       g2.setColor(Color.WHITE);

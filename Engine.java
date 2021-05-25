@@ -13,7 +13,7 @@ public class Engine
     fovV = Math.toRadians(25);
     fovH = Math.toRadians(45); 
     updateFOV(700, 700);
-    renderFar = Math.min(map.getWidth(), map.getHeight());
+    renderFar = Math.min(map.getWidth(), map.getHeight()) / 2;
     increment = 0.01;
   }
   public Map getMap()
@@ -46,7 +46,7 @@ public class Engine
       if (testX < 0 || testX >= map.getWidth() || testY < 0 || testY >= map.getHeight())
       {
         hitWall = true;
-        dist = renderFar;
+        dist = renderFar + 10;
       }
       else if (map.getMap()[(int) testY][(int) testX])
       {
@@ -63,17 +63,21 @@ public class Engine
   {
     double stepX = Math.sin(player.getAngle());
     double stepY = Math.cos(player.getAngle());
-    double entityAngle = Math.atan(stepY / stepX) - Math.atan((e.y() - player.y()) / (e.x() - player.x()));
-    if (entityAngle < -Math.PI)
-      entityAngle += 2 * Math.PI;
+    double entityAngle = Math.atan2(stepY, stepX) - Math.atan2((e.y() - player.y()), (e.x() - player.x()));
+    if (entityAngle < -Math.PI) 
+      entityAngle += Math.PI * 2;
     if (entityAngle > Math.PI)
-      entityAngle -= 2 * Math.PI;
+      entityAngle -= Math.PI * 2;
     return entityAngle;
   }
   public boolean isEntityVisible(Entity e)
   {
     double entityAngle = getAngleFromEntity(e);
-    return Math.abs(entityAngle) < fovH / 1.7; 
+    double dist = getDistanceFromEntity(e);
+    if (dist < 5)    
+      return (Math.abs(entityAngle) < fovH / 1.3); 
+    else
+      return (Math.abs(entityAngle) < fovH / 2); 
   }
   public void movePlayer(double distance)
   {

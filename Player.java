@@ -3,7 +3,7 @@ public class Player extends Entity
   private double angle;
   public Player(double x, double y)
   {
-    super(x, y);
+    super(x, y, "Player");
     angle = 0;
   }
   public Player()
